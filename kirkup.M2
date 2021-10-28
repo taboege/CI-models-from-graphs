@@ -1,5 +1,6 @@
 needsPackage "FourTiTwo";
 needsPackage "GraphicalModels";
+needsPackage "Matroids";
 
 -- Generate the simplicial complex from a sequence of sets
 complexify = FF -> unique flatten apply(FF, F -> subsets(F));
@@ -122,4 +123,13 @@ checkConjecture = FF -> (
   maxexpo := max(flatten(flatten(entries leadTerm QT) / exponents) / max);
   if maxexpo == 1 then return true
   else return isPrime(QT);
+);
+
+-- For small values of n the Matroids package can give us all matroids
+-- on this ground set.
+checkForMatroids = n -> (
+  apply(select(allMatroids(n), isSimple), M -> (
+    FF = bases(M) / toList;
+    << FF << ": " << checkConjecture(FF) << endl << flush;
+  ));
 );
