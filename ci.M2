@@ -38,8 +38,8 @@ upByOne = I -> apply(I, ijK -> {
 });
 
 -- The return value of CIrelation is not packed up enough either for
--- GraphicalModels's conditionalIndependenceIdeal. Convert {i,j,{K...}}
--- to {{i},{j},{K...}}.
+-- GraphicalModels's conditionalIndependenceIdeal. Convert {i,j,K}
+-- to {{i},{j},K} (where every component is a list).
 packCI = I -> apply(I, ijK -> {
   {ijK#0}, {ijK#1}, ijK#2
 });
