@@ -113,10 +113,13 @@ kirkPrime = FF -> (
 );
 
 checkConjecture = FF -> (
-  S = kirkRing(FF);
-  K = kirkMarg(FF, S);
-  Q = kirkIndep(FF, S);
-  T = S/K;
-  QT = sub(Q, T);
-  isPrime(QT)
+  S := kirkRing(FF);
+  K := kirkMarg(FF, S);
+  Q := kirkIndep(FF, S);
+  T := S/K;
+  QT := sub(Q, T);
+  -- Heuristic: check the initial ideal for squarefreeness
+  maxexpo := max(flatten(flatten(entries leadTerm QT) / exponents) / max);
+  if maxexpo == 1 then return true
+  else return isPrime(QT);
 );
