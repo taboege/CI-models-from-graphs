@@ -133,3 +133,20 @@ checkForMatroids = n -> (
     << FF << ": " << checkConjecture(FF) << endl << flush;
   ));
 );
+
+checkSquarefree = FF -> (
+  S := kirkRing(FF);
+  S' := QQ[gens S, MonomialOrder=>Lex]; -- experiment with monomial orders
+  K := kirkMarg(FF, S');
+  Q := kirkIndep(FF, S');
+  T := S'/K;
+  QT := sub(Q, T);
+  1 == max(flatten(flatten(entries leadTerm QT) / exponents) / max)
+);
+
+checkSquarefreeForMatroids = n -> (
+  apply(select(allMatroids(n), isSimple), M -> (
+    FF = bases(M) / toList;
+    << FF << ": " << checkSquarefree(FF) << endl << flush;
+  ));
+);
