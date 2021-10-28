@@ -8,7 +8,7 @@ complexify = FF -> unique flatten apply(FF, F -> subsets(F));
 -- independences in the complex FF.
 CIstmts = N -> (
   flatten apply(subsets(N, 2) / sort, ij -> (
-    M = toList(difference(set N, ij));
+    M := toList(difference(set N, ij));
     apply(subsets(M) / sort, K -> {ij#0, ij#1, K})
   ))
 );
@@ -23,7 +23,7 @@ packCI = I -> apply(I, ijK -> {
 -- Delta-independence ideal.
 binaryRing = N -> markovRing(#N : 2);
 indepIdeal = FF -> (
-  N = sort unique flatten FF;
+  N := sort unique flatten FF;
   conditionalIndependenceIdeal(binaryRing(N), packCI indepCI(FF))
 );
 
@@ -32,16 +32,16 @@ indepIdeal = FF -> (
 -- paper). The binary states are 1 and 2 (instead of 0 and 1),
 -- just as in markovRing from GraphicalModels.
 kirkLabels = FF -> (
-  N = sort unique flatten FF;
+  N := sort unique flatten FF;
   FF = complexify FF;
   flatten apply(FF, F -> (
     -- Instantiate one label for each binary vector over F.
     apply(subsets(F), A -> (
       -- The binary vector corresponding to A.
-      B = apply(F, i -> if member(i, A) then 2 else 1);
+      B := apply(F, i -> if member(i, A) then 2 else 1);
       -- Splice it into the positions indexed by F, while
       -- the other positions are 0.
-      a = new MutableList from #N : 0;
+      a := new MutableList from #N : 0;
       apply(F, f -> (
         a#(position(N, i -> i == f)) = B#(position(F, i -> i == f));
       ));
@@ -50,22 +50,23 @@ kirkLabels = FF -> (
   ))
 );
 kirkRing = FF -> (
-  vv = apply(kirkLabels(FF), a -> x_a);
+  vv := apply(kirkLabels(FF), a -> x_a);
   QQ[vv]
 );
 
 -- The ideal K_\Delta.
 kirkMarg = (FF, S) -> (
-  N = sort unique flatten FF;
-  R = binaryRing(N);
+  N := sort unique flatten FF;
+  R := binaryRing(N);
+  use R;
   kernel map(R, S, apply(kirkLabels(FF), a -> (
     -- Get all binary vectors indexed by D, the complement of F.
-    D = select(N, d -> a#(position(N, i -> i == d)) == 0);
+    D := select(N, d -> a#(position(N, i -> i == d)) == 0);
     sum apply(apply(subsets(D), A -> (
-      B = apply(D, i -> if member(i, A) then 2 else 1);
+      B := apply(D, i -> if member(i, A) then 2 else 1);
       -- Splice the vector b into the zeros of a to obtain a
       -- variable from T.
-      ab = new MutableList from a;
+      ab := new MutableList from a;
       apply(D, d -> (
         ab#(position(N, i -> i == d)) = B#(position(D, i -> i == d));
       ));
@@ -81,7 +82,7 @@ margLabels = N -> (
   ))
 );
 margRing = N -> (
-  vv = apply(margLabels(N), a -> y_a);
+  vv := apply(margLabels(N), a -> y_a);
   QQ[vv]
 );
 
@@ -94,8 +95,9 @@ toricIdeal = (R, M) -> (
 
 -- The ideal Q_\Delta. Should be created in S and then sub'd to T = S/K.
 kirkIndep = (FF, S) -> (
-  N = sort unique flatten FF;
-  R = margRing(N);
+  N := sort unique flatten FF;
+  R := margRing(N);
+  use R;
   toricIdeal(S, apply(kirkLabels(FF), a -> (
     product apply(apply(N, i -> (
       toSequence {i, a#(position(N, j -> i == j))}
@@ -106,7 +108,7 @@ kirkIndep = (FF, S) -> (
 -- The ideal P_\Delta = radical(K_\Delta + Q_\Delta),
 -- conjectured not to need the radical there.
 kirkPrime = FF -> (
-  S = kirkRing FF;
+  S := kirkRing FF;
   radical(sub(kirkMarg(FF), S) + sub(kirkIndep(FF), S))
 );
 
