@@ -1,3 +1,6 @@
+needsPackage "FourTiTwo";
+needsPackage "GraphicalModels";
+
 -- Generate the simplicial complex from a sequence of sets
 complexify = FF -> unique flatten apply(FF, F -> subsets(F));
 
@@ -18,7 +21,6 @@ packCI = I -> apply(I, ijK -> {
 
 -- The polynomial ring in all atomic probabilities and the
 -- Delta-independence ideal.
-loadPackage "GraphicalModels";
 binaryRing = N -> markovRing(#N : 2);
 indepIdeal = FF -> (
   N = sort unique flatten FF;
@@ -53,11 +55,10 @@ kirkRing = FF -> (
 );
 
 -- The ideal K_\Delta.
-kirkMarg = FF -> (
+kirkMarg = (FF, S) -> (
   N = sort unique flatten FF;
-  S = kirkRing FF;
-  T = binaryRing N;
-  kernel map(T, S, apply(kirkLabels(FF), a -> (
+  R = binaryRing(N);
+  kernel map(R, S, apply(kirkLabels(FF), a -> (
     -- Get all binary vectors indexed by D, the complement of F.
     D = select(N, d -> a#(position(N, i -> i == d)) == 0);
     sum apply(apply(subsets(D), A -> (
@@ -84,12 +85,18 @@ margRing = N -> (
   QQ[vv]
 );
 
--- The ideal Q_\Delta.
-kirkIndep = FF -> (
+-- Get a toric ideal more quickly than `kernel map ...`. Takes the ring
+-- in which to create the ideal and then a list of monomials (just like
+-- `map` would).
+toricIdeal = (R, M) -> (
+  toricGroebner(transpose matrix(M / (f -> flatten exponents f)), R)
+);
+
+-- The ideal Q_\Delta. Should be created in S and then sub'd to T = S/K.
+kirkIndep = (FF, S) -> (
   N = sort unique flatten FF;
-  S = kirkRing FF;
-  T = margRing N;
-  kernel map(T, S, apply(kirkLabels(FF), a -> (
+  R = margRing(N);
+  toricIdeal(S, apply(kirkLabels(FF), a -> (
     product apply(apply(N, i -> (
       toSequence {i, a#(position(N, j -> i == j))}
     )), ij -> y_ij)
@@ -101,4 +108,13 @@ kirkIndep = FF -> (
 kirkPrime = FF -> (
   S = kirkRing FF;
   radical(sub(kirkMarg(FF), S) + sub(kirkIndep(FF), S))
+);
+
+checkConjecture = FF -> (
+  S = kirkRing(FF);
+  K = kirkMarg(FF, S);
+  Q = kirkIndep(FF, S);
+  T = S/K;
+  QT = sub(Q, T);
+  isPrime(QT)
 );
