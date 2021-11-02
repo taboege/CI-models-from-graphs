@@ -79,9 +79,32 @@
 
 \section*{The basis of the zero-margin part of the model from Ho\c{s}ten-Sullivant} 
 
+Let $\pi_\Delta$ be the monomial map parametrizing the hierarchical log-linear model of a simplicial complex $\Delta$, and $K=\ker \pi_\Delta$ its kernel. The map is defined using facets of $\Delta$, and thus $K$ is precisely the set of tensors whose facet-marginals are identically zero. 
+The dimension of $K$ is provided in \cite[Theorem 2.6]{HoSu02} through a construction of an explicit basis of $K$ as a vector space.  This basis consists of  \emph{adjacent minors} supported on non-faces of $\Delta$. 
+%- $\pi_\Delta$. is defined using. facets of $\Delta$
+%- $K$ is generated as a vec space by adjacent minors supported on non-faces (minimal non-faces) 
+%- these. are all zero-margin. tables, by lemma 2.1. all tables whose F-margins are zero for all faceTs F
+%- I think this gives lin indep vectors supported on non faces which. also generate kernel for all. faces not just facets
+% because facet marginal table = 0 $\implies$ all faces proper subsets of it also are 0 marginals, right? Yeah, this should follow by construction.  
+% face marginal table = sum over some indices of facet marginal tables so if the latter is 0 then so is the former. this should give the correct inclusion. 
+ 
+Ho\c{s}ten and Sullivant identify  the basis as \emph{the exponents of adjacent minors}  as follows. 
+
+Let $S\not\in\Delta$ be a non-face of the complex. An adjacent minor $X$ supported on $S$ is defined as: 
+\[
+	X_{k_1\dots k_n} =(-1)^{\sum_{j\in S}\epsilon_j}, 
+\]
+where $k_j=i_j+\epsilon_j$, $\epsilon_j\in\{0,1\}$ and $j\in S$, and $k_j=0$ otherwise.
+
+Intermediate results (e.g.,  \cite[Lemma 2.1]{HoSu02}) imply that the union all adjacent minors supported on all non-empty subsets $S$ is  linearly independent and, in addition, that each table whose $\Delta$-(facet-)margins are zero can be uniquely written as an integral combination of adjacent minors, providing a basis over $\mathbb Z$. 
+
+
+\section*{Internal notes} 
+\emph{Disclaimer:} This section may be repetitive but I'm extracting from it, moving above, and then merging with paper draft. 
+
 \subsection*{What they compute} 
 \cite[Theorem 2.6]{HoSu02} provides the dimension formula for the space of tables all of whose $\Delta$ margins are zero. %(That is, for the kernel of the toric map parametrizing the model of $\Delta$-independence.) %   the one with marginal independence for all faces of $\Delta$. 
-They do this within the context of hierarchical log-linear models defined by a simplicial complex $\Delta$. These are toric models whose monomial parametrization is indexed by facets of $\Delta$ and whose sufficient statistics are table facet-marginals. Elements in the toric ideal of the model are then precisely tensors whose $\Delta$ margins are all zero. 
+They do this within the context of hierarchical log-linear models defined by a simplicial complex $\Delta$. These are toric models whose monomial parametrization is indexed by facets of $\Delta$ and whose sufficient statistics are table facet-marginals. Elements in the toric ideal of the model are then precisely tensors whose  margins supported on the facets of $\Delta$ are all zero. 
 
 \subsection*{How they compute it}
 Since the model is toric, the proof amounts to simply computing the vector space dimension of the kernel of the linear map induced by $\Delta$ by identifying the appropriate number of linearly independent vectors, which then comprise the basis of the vectors space of tensors whose $\Delta$-margins are all zero.  
@@ -94,6 +117,7 @@ Let $S\not\in\Delta$ be a non-face of the complex. An adjacent minor $X$ support
 	X_{k_1\dots k_n} =(-1)^{\sum_{j\in S}\epsilon_j}, 
 \]
 where $k_j=i_j+\epsilon_j$, $\epsilon_j\in\{0,1\}$ and $j\in S$, and $k_j=0$ otherwise.
+
 
 Let us see some small examples. 
 For a $2\times\dots\times2$ tensor, for example if $S=\{12\}$, this amounts to the following set of  $2\times 2$ minors
