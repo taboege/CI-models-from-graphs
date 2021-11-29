@@ -34,17 +34,6 @@ sub act {
     [ map { [ map { $p->[$_-1] } @$_ ] } @$FF ]
 }
 
-sub reduce {
-    my @group = permutations($N);
-    my (@rep, %seen);
-    for my $FF (@_) {
-        next if $seen{str $FF};
-        push @rep, $FF;
-        $seen{str act($FF, $_)}++ for @group;
-    }
-    @rep
-}
-
 sub facets {
     my $FF = shift;
     my @max;
@@ -115,15 +104,13 @@ for my $A (subsets($N)) {
 # Simplicial complex should be covering the whole set $N
 $solver->add([ getvar([ $_ ]) ]) for @$N;
 
-my @cpxes;
+my @group = permutations($N);
 my $all = $solver->all;
+my %seen;
 while (defined(my $cpx = $all->next)) {
-    push @cpxes, [ map getset($_), grep $_ > 0, @$cpx ];
+    my $FF = [ map getset($_), grep $_ > 0, @$cpx ];
+    next if $seen{str $FF};
+    #next if not connected $FF;
+    $seen{str act($FF, $_)}++ for @group;
+    say str facets $FF;
 }
-
-# Reduce modulo symmetry.
-@cpxes = reduce @cpxes;
-# Filter for connected complexes.
-@cpxes = grep { connected $_ } @cpxes;
-# Output only their facets.
-say str facets $_ for @cpxes;
