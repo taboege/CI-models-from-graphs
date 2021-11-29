@@ -1,6 +1,7 @@
 needsPackage "FourTiTwo";
 needsPackage "GraphicalModels";
 needsPackage "Matroids";
+needsPackage "Polyhedra";
 
 -- Generate the simplicial complex from a sequence of sets
 complexify = FF -> unique flatten apply(FF, F -> subsets(F));
@@ -106,11 +107,34 @@ kirkIndep = (FF, S) -> (
   )))
 );
 
+Qmap = (FF, S) -> (
+  N := sort unique flatten FF;
+  R := margRing(N);
+  use R;
+  apply(kirkLabels(FF), a -> (
+    product apply(apply(N, i -> (
+      toSequence {i, a#(position(N, j -> i == j))}
+    )), ij -> y_ij)
+  ))
+);
+
 -- The ideal P_\Delta = radical(K_\Delta + Q_\Delta),
 -- conjectured not to need the radical there.
 kirkPrime = FF -> (
   S := kirkRing FF;
   radical(sub(kirkMarg(FF), S) + sub(kirkIndep(FF), S))
+);
+
+-- The 0/1 polytope whose vertices are the faces of FF.
+binaryPolytope = FF -> (
+  N := sort unique flatten FF;
+  FF = complexify FF; -- really important in this case
+  convexHull transpose matrix(
+    apply(
+      select(subsets(N), A -> member(A, FF)),
+      A -> apply(N, i -> if member(i, A) then 1 else 0)
+    )
+  )
 );
 
 checkConjecture = FF -> (
