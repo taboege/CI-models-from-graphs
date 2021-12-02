@@ -3,7 +3,7 @@ needsPackage "Polyhedra";
 needsPackage "PhylogeneticTrees";
 
 -- Generate the simplicial complex from a sequence of sets
-complexify = FF -> unique flatten apply(FF, F -> subsets(F));
+complexify = FF -> unique flatten apply(FF, F -> subsets(F) / sort);
 
 -- Conditional independence statements corresponding to the
 -- independences in the complex FF.
@@ -70,7 +70,7 @@ segre = (FF, P) -> (
 -- The linear space of margin-zero tensors in P coordinates.
 marg = (FF, P) -> (
   N := sort unique flatten FF;
-  ideal(flatten apply(FF, F -> (
+  ideal(flatten apply(FF / sort, F -> (
     D := select(N, d -> not member(d, F));
     apply(subsets(F), G -> (
       sum apply(apply(subsets(D), B -> (
