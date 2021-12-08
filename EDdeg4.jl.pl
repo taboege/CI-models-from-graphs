@@ -53,7 +53,7 @@ sub run_julia {
 
 # Get a substitution list for the Julia program from a simplicial complex.
 # The first argument is the simplicial complex, all other arguments are
-# prepended to the subslist. Use it to set "q=>1" to get the affine degree.
+# prepended to the subslist. Use it to set "z=>1" to get the affine degree.
 sub subslist {
     my $complex = shift;
 
@@ -86,7 +86,7 @@ for my $item (@input) {
 
     my @msg;
     if ($affine) {
-        my $res = ed_degree($complex, 'q=>1');
+        my $res = ed_degree($complex, 'z=>1');
         push @msg, 'affine(' .
             join(', ', $res->@{'ed_degree', 'real_solutions'}) .
         ')';
@@ -103,29 +103,29 @@ for my $item (@input) {
 __DATA__
 using HomotopyContinuation
 
-@var q q1 q2 q3 q4 q12 q13 q14 q23 q24 q34 q123 q124 q134 q234 q1234
+@var q1 q2 q3 q4 q12 q13 q14 q23 q24 q34 q123 q124 q134 q234 q1234 z
 
 sample = randn(16)
-p1111,p1112,p1121,p1122,p1211,p1212,p1221,p1222,
-p2111,p2112,p2121,p2122,p2211,p2212,p2221,p2222 = sample
+p0000,p0001,p0010,p0011,p0100,p0101,p0110,p0111,
+p1000,p1001,p1010,p1011,p1100,p1101,p1110,p1111 = sample
 
 diffs = [
-  -p1111 + q1234,
-  -p1112 + q123-q1234,
-  -p1121 + q124-q1234,
-  -p1122 + q12-q123-q124+q1234,
-  -p1211 + q134-q1234,
-  -p1212 + q13-q123-q134+q1234,
-  -p1221 + q14-q124-q134+q1234,
-  -p1222 + q1-q12-q13+q123-q14+q124+q134-q1234,
-  -p2111 + q234-q1234,
-  -p2112 + q23-q123-q234+q1234,
-  -p2121 + q24-q124-q234+q1234,
-  -p2122 + q2-q12-q23+q123-q24+q124+q234-q1234,
-  -p2211 + q34-q134-q234+q1234,
-  -p2212 + q3-q13-q23+q123-q34+q134+q234-q1234,
-  -p2221 + q4-q14-q24+q124-q34+q134+q234-q1234,
-  -p2222 + q-q1-q2+q12-q3+q13+q23-q123-q4+q14+q24-q124+q34-q134-q234+q1234
+  -p0000 + z*(q1234),
+  -p1000 + z*(q234-q1234),
+  -p0010 + z*(q124-q1234),
+  -p0100 + z*(q134-q1234),
+  -p0001 + z*(q123-q1234),
+  -p0110 + z*(q14-q124-q134+q1234),
+  -p0101 + z*(q13-q123-q134+q1234),
+  -p0011 + z*(q12-q123-q124+q1234),
+  -p1001 + z*(q23-q123-q234+q1234),
+  -p1010 + z*(q24-q124-q234+q1234),
+  -p1100 + z*(q34-q134-q234+q1234),
+  -p1101 + z*(q3-q13-q23+q123-q34+q134+q234-q1234),
+  -p1011 + z*(q2-q12-q23+q123-q24+q124+q234-q1234),
+  -p0111 + z*(q1-q12-q13+q123-q14+q124+q134-q1234),
+  -p1110 + z*(q4-q14-q24+q124-q34+q134+q234-q1234),
+  -p1111 + z*(1-q1-q2+q12-q3+q13+q23-q123-q4+q14+q24-q124+q34-q134-q234+q1234)
 ]
 
 dist = sum([d^2 for d in diffs])

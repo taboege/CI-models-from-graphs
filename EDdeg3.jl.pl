@@ -2,7 +2,7 @@
 
 # Get the affine or projective ED degree of the marginal independence model
 # for simplicial complexes on four vertices. The vertices must all appear
-# in the complex and be labeled by {1, 2, 3, 4}.
+# in the complex and be labeled by {1, 2, 3}.
 #
 # TODO: generic degrees.
 
@@ -53,7 +53,7 @@ sub run_julia {
 
 # Get a substitution list for the Julia program from a simplicial complex.
 # The first argument is the simplicial complex, all other arguments are
-# prepended to the subslist. Use it to set "q=>1" to get the affine degree.
+# prepended to the subslist. Use it to set "z=>1" to get the affine degree.
 sub subslist {
     my $complex = shift;
 
@@ -86,7 +86,7 @@ for my $item (@input) {
 
     my @msg;
     if ($affine) {
-        my $res = ed_degree($complex, 'q=>1');
+        my $res = ed_degree($complex, 'z=>1');
         push @msg, 'affine(' .
             join(', ', $res->@{'ed_degree', 'real_solutions'}) .
         ')';
@@ -103,21 +103,21 @@ for my $item (@input) {
 __DATA__
 using HomotopyContinuation
 
-@var q q1 q2 q3 q12 q13 q23 q123
+@var q1 q2 q3 q12 q13 q23 q123 z
 
 sample = randn(8)
-p111,p112,p121,p122,
-p211,p212,p221,p222 = sample
+p000,p001,p010,p011,
+p100,p101,p110,p111 = sample
 
 diffs = [
-  -p111 + q123,
-  -p112 + q12-q123,
-  -p121 + q13-q123,
-  -p122 + q23-q123,
-  -p211 + q2-q12-q23+q123,
-  -p212 + q3-q13-q23+q123,
-  -p221 + q1-q12-q13+q123,
-  -p222 + q-q1-q2+q12-q3+q13+q23-q123
+  -p000 + z*(q123),
+  -p001 + z*(q12-q123),
+  -p010 + z*(q13-q123),
+  -p100 + z*(q23-q123),
+  -p101 + z*(q2-q12-q23+q123),
+  -p110 + z*(q3-q13-q23+q123),
+  -p011 + z*(q1-q12-q13+q123),
+  -p111 + z*(1-q1-q2+q12-q3+q13+q23-q123)
 ]
 
 dist = sum([d^2 for d in diffs])
