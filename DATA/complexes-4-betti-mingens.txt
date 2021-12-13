@@ -1,3 +1,9 @@
+{{1}, {2}, {3}, {4}}
+dim/codim/deg: 5/0/1
+                      0
+Betti mingens: total: 1
+                   0: 1
+
 {{1, 2}, {3}, {4}}
 dim/codim/deg: 5/1/2
                       0 1
@@ -33,6 +39,13 @@ Betti mingens: total: 1 5
                    0: 1 .
                    1: . 5
 
+{{1, 2}, {1, 3}, {2, 3}, {4}}
+dim/codim/deg: 5/3/5
+                      0 1
+Betti mingens: total: 1 5
+                   0: 1 .
+                   1: . 5
+
 {{1, 2}, {1, 3}, {1, 4}, {2, 3}}
 dim/codim/deg: 5/4/7
                       0 1
@@ -60,6 +73,13 @@ dim/codim/deg: 5/6/12
 Betti mingens: total: 1 16
                    0: 1  .
                    1: . 16
+
+{{1, 2, 3}, {4}}
+dim/codim/deg: 5/4/6
+                      0 1
+Betti mingens: total: 1 9
+                   0: 1 .
+                   1: . 9
 
 {{1, 2, 3}, {1, 4}}
 dim/codim/deg: 5/5/8
