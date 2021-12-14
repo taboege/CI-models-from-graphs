@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
 use Modern::Perl 2018;
+use Getopt::Long qw(:config bundling);
 
 use CInet::Base;
 use CInet::ManySAT;
@@ -8,6 +9,10 @@ use CInet::ManySAT;
 use Array::Set qw(set_diff set_union set_intersect);
 use Algorithm::Combinatorics qw(subsets permutations);
 use List::UtilsBy qw(uniq_by);
+
+GetOptions(
+    "-M" => \my $matroids,
+) or die 'failed to parse options';
 
 my $n = shift // die 'need ground set size';
 my $N = [ 1 .. $n ];
@@ -101,6 +106,23 @@ for my $A (subsets($N)) {
         $solver->add([ -$a, +$b ]); # A => B
     }
 }
+
+# Only matroids requested?
+if ($matroids) {
+    # Steinitz property
+    for my $A (subsets($N)) {
+        my $a = getvar($A);
+        for my $B (subsets($N)) {
+            next unless $B->@* < $A->@*;
+            my $b = getvar($B);
+            my $D = set_diff($A, $B);
+            my @c = map { getvar(set_union($B, [$_])) } @$D;
+            # A and B => B \cup c for some c in A\B
+            $solver->add([ -$a, -$b, @c ]);
+        }
+    }
+}
+
 # Simplicial complex should be covering the whole set $N
 $solver->add([ getvar([ $_ ]) ]) for @$N;
 
