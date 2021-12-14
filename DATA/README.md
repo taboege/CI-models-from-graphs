@@ -9,16 +9,15 @@ Arbitrary simplicial complexes:
 - complexes-5.txt
 - complexes-6.txt
 
-Connected matroids (the ones on 8 vertices are up to rank 4):
+Matroids (loopless, up to isomorphy) go up to seven ground elements:
 
-- matroids-4c.txt
-- matroids-5c.txt
-- matroids-6c.txt
-- matroids-7c.txt
-- matroids-8c-r4.txt
+- matroids-4.txt
+- matroids-5.txt
+- matroids-6.txt
+- matroids-7.txt
 
-**Caution:** currently the ground set for matroids is indexed starting
-from **0** while general complexes start from **1**. To be fixed soon.
+**Caution:** it is possible that the isomorphy representatives chosen
+for matroids are not the same as the ones chosen for complexes!
 
 ## Dimension, degree and Betti table
 
@@ -31,11 +30,10 @@ toric variety:
 - complexes-4-betti-mingens.txt
 - complexes-5-betti-mingens.txt
 - complexes-6-betti-mingens.txt
-- matroids-4c-betti-mingens.txt
-- matroids-5c-betti-mingens.txt
-- matroids-6c-betti-mingens.txt
-- matroids-7c-betti-mingens.txt
-- matroids-8c-r4-betti-mingens.txt
+- matroids-4-betti-mingens.txt
+- matroids-5-betti-mingens.txt
+- matroids-6-betti-mingens.txt
+- matroids-7-betti-mingens.txt
 
 ## aED, pED and ML degrees
 
