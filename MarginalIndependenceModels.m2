@@ -260,6 +260,7 @@ doc ///
     while the full model lives in a larger space. Hence there will be  a discrepancy 
     comparing the theoretical model results and properties of the ideal $I$, for example, 
     dimension is offset by the number of irrelevant Moebius coordinates. 
+    The true (affine) dimension of the model is $2^n$ - codim I. 
   SeeAlso 
     marginalIndependenceIdeal
     moebius
