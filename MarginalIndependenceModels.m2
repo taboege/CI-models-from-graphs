@@ -254,7 +254,12 @@ doc ///
     Text
       This is  the 3-cycle as in Example 1 in Boege-Petrovi\'c-Sturmfels. 
       The example also appears in S. Sullivant: {\em Algebraic Statistics} (2018)  
-      and G. Kirkup: {\em Random variables with completely independent subcollections} (2007). 
+      and G. Kirkup: {\em Random variables with completely independent subcollections} (2007).
+  Caveat
+    It  is worth noting that in this package, the  ambient polynomial ring uses only  the relevant Moebius coordinates,
+    while the full model lives in a larger space. Hence there will be  a discrepancy 
+    comparing the theoretical model results and properties of the ideal $I$, for example, 
+    dimension is offset by the number of irrelevant Moebius coordinates. 
   SeeAlso 
     marginalIndependenceIdeal
     moebius
@@ -288,11 +293,11 @@ doc ///
 doc ///
   Key
     moebius
-    (marginalIndependenceIdeal, List)
+    (moebius, List)
   Headline
     toric ideal of marginal independence in Moebius coordinates 
   Usage
-    marginalIndependenceIdeal(List)
+    moebius(List)
   Inputs
     FF : List
       of facets of a simplicial complex S
