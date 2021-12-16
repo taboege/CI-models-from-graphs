@@ -94,7 +94,9 @@ binaryJoinModel = FF -> (
   joinIdeal(S, L)
 );
 
--- The model according to Theorem 5 in [Nov 28].
+-- The model according to Theorem 5 in [Nov 28]. 
+-- the special quadrics only -  we know this isn't the full ideal,
+-- but maybe these are conjectured to generate ideal for matroids (White).
 binaryModel = FF -> (
   N := sort unique flatten FF;
   f := moebius(FF);
@@ -115,5 +117,9 @@ polytopeModel = FF -> (
   B := binaryPolytope FF;
   FF = complexify FF;
   Q := QQ[ select(subsets(N), A -> member(A, FF)) / sort / (A -> q_A) ];
-  toricGroebner(Polyhedra$vertices(B), Q)
+  --toricGroebner(Polyhedra$vertices(B), Q)
+  toricMarkov(Polyhedra$vertices(B), Q)
 );
+
+
+
