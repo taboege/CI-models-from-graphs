@@ -153,12 +153,94 @@ The entire file is attached to this page: Cycle3-3x3x3.m2_.
 Euclidean distance and maximum likelihood degrees
 -------------------------------------------------
 
-To compute aED, pED and ML degrees of our models, we used the Julia_ package
-HomotopyContinuation.jl_.
+To compute aED, pED and ML degrees of our models, we used the Julia_ package HomotopyContinuation.jl_.
+We employ the parametrization of the model in Möbius coordinates to write the critical equations
+for the unconstrained optimization problem. In these coordinates, marginal independences correspond
+to factorizations of the relevant Möbius coordinates into the singletons:
+:math:`q_\sigma = \prod_{i \in \sigma} q_i`.
+
+.. code-block:: julia
+
+                using HomotopyContinuation
+
+                @var q1 q2 q3 q12 q13 q23 q123 z
+
+                sample = randn(ComplexF64, 8)
+                p000,p001,p010,p011,
+                p100,p101,p110,p111 = sample
+
+                diffs = [
+                  -p000 + z*(q123),
+                  -p001 + z*(q12-q123),
+                  -p010 + z*(q13-q123),
+                  -p100 + z*(q23-q123),
+                  -p101 + z*(q2-q12-q23+q123),
+                  -p110 + z*(q3-q13-q23+q123),
+                  -p011 + z*(q1-q12-q13+q123),
+                  -p111 + z*(1-q1-q2+q12-q3+q13+q23-q123)
+                ]
+
+                dist = sum([d^2 for d in diffs])
+
+This sets up the parametrization and the objective function.
+The 3-cycle corresponds to the below factorization:
+
+.. code-block:: julia
+
+                subslist = [ z=>1, q12=>q1*q2, q13=>q1*q3, q23=>q2*q3 ]
+                dist = subs(dist, subslist...)
+
+HomotopyContinuation.jl can write out the critical equations and compute the number of complex
+solutions for the random complex data chosen above.
+
+.. code-block:: julia
+
+                vars = variables(dist)
+                eqns = differentiate(dist, vars)
+
+                R = solve(eqns; show_progress = false,
+                  tracker_options = TrackerOptions(
+                    automatic_differentiation = 3,
+                    parameters = :conservative
+                  )
+                )
+
+                C = certify(eqns, R; show_progress = false)
+                println(ndistinct_certified(C))
+
+To change the model, only the variable ``subslist`` has to be altered. To automate the
+computation of degrees, the above program was embedded into a Perl_ program which
+modifies the ``subslist`` for a given simplicial complex, runs the Julia program and
+parses its output. The parametrizations are obtained via our Macaulay2 code and hardcoded
+in each file:
+
+- <EDdeg3.jl.pl>
+- <EDdeg4.jl.pl>
+- <EDdeg5.jl.pl>
+- <MLdeg3.jl.pl>
+- <MLdeg4.jl.pl>
 
 Plain text database of complexes, models and degrees
 ----------------------------------------------------
 
+Our findings are summarized in plain text database files. They list each simplicial complex
+and the data for its model in one line. This includes the facet description of the complex,
+its dimension, number of faces, facets and f-vector to make it easy to find a given complex
+by hand. We indicate whether the complex is a matroid or even the complex of forests of an
+undirected simple graph. For its toric ideal we list the dimension, codimension and degree,
+moreover its m-vector, i.e., for each degree the number of minimal generators. Finally,
+whenever available, we give the aED, pED and ML degree. The complexes are listed up to
+isomorphy and they always contain :math:`\{i\}` for all :math:`i \in [n]`.
+
+- <MarginalIndependence-3.txt>
+- <MarginalIndependence-4.txt>
+- <MarginalIndependence-5.txt>
+
+For higher :math:`n`, we are only able to list combinatorial and ideal data for models
+induced by matroids:
+
+- <MatroidIndependence-6.txt>
+- <MatroidIndependence-7.txt>
 
 Colophon
 --------
@@ -173,5 +255,6 @@ Corresponding author of this page: Tobias Boege, tobias.boege@mis.mpg.de
 .. _MarginalIndependenceModels: https://github.com/taboege/CI-models-from-graphs/blob/master/MarginalIndependenceModels.m2
 .. _Julia: https://julialang.org
 .. _HomotopyContinuation.jl: https://www.juliahomotopycontinuation.org
+.. _Perl: https://www.perl.org
 
 .. _Cycle3-3x3x3.m2: Cycle3-3x3x3.m2
