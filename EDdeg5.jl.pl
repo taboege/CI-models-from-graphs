@@ -3,8 +3,6 @@
 # Get the affine or projective ED degree of the marginal independence model
 # for simplicial complexes on four vertices. The vertices must all appear
 # in the complex and be labeled by {1, 2, 3, 4, 5}.
-#
-# TODO: generic degrees.
 
 use Modern::Perl 2018;
 use utf8::all;
@@ -75,8 +73,8 @@ sub ed_degree {
     );
 
     my $output = run_julia $file;
-    my ($general, $real, $sample) = $output =~ /(\d+) (\d+) (.*)/;
-    { ed_degree => $general, real_solutions => $real }
+    my ($general) = $output =~ /^(\d+)/;
+    { ed_degree => $general }
 }
 
 my @input = map { chomp; $_ } <<>>;
@@ -87,15 +85,11 @@ for my $item (@input) {
     my @msg;
     if ($affine) {
         my $res = ed_degree($complex, 'z=>1');
-        push @msg, 'affine(' .
-            join(', ', $res->@{'ed_degree', 'real_solutions'}) .
-        ')';
+        push @msg, "affine(@{[ $res->{ed_degree} ]})";
     }
     if ($projective) {
         my $res = ed_degree($complex);
-        push @msg, 'projective(' .
-            join(', ', $res->@{'ed_degree', 'real_solutions'}) .
-        ')';
+        push @msg, "projective(@{[ $res->{ed_degree} ]})";
     }
     say $item, ': ', join(', ', @msg);
 }
@@ -105,7 +99,7 @@ using HomotopyContinuation
 
 @var q1 q2 q3 q4 q5 q12 q13 q14 q15 q23 q24 q25 q34 q35 q45 q123 q124 q125 q134 q135 q145 q234 q235 q245 q345 q1234 q1235 q1245 q1345 q2345 q12345 z
 
-sample = randn(32)
+sample = randn(ComplexF64, 32)
 p00000,p00001,p00010,p00011, p00100,p00101,p00110,p00111,
 p01000,p01001,p01010,p01011, p01100,p01101,p01110,p01111,
 p10000,p10001,p10010,p10011, p10100,p10101,p10110,p10111,
@@ -155,6 +149,12 @@ end
 vars = variables(dist)
 eqns = differentiate(dist, vars)
 
-R = solve(eqns, show_progress = false)
-C = certify(eqns, R)
-println(ndistinct_certified(C), " ", ndistinct_real_certified(C), " ", sample)
+R = solve(eqns; show_progress = false,
+  tracker_options = TrackerOptions(
+    automatic_differentiation = 3,
+    parameters = :conservative
+  )
+)
+
+C = certify(eqns, R; show_progress = false)
+println(ndistinct_certified(C))

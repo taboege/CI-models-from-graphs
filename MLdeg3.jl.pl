@@ -3,12 +3,9 @@
 # Get the affine or projective ML degree of the marginal independence model
 # for simplicial complexes on four vertices. The vertices must all appear
 # in the complex and be labeled by {1, 2, 3}.
-#
-# TODO: generic degrees.
 
 use Modern::Perl 2018;
 use utf8::all;
-use Getopt::Long qw(:config bundling);
 
 use Path::Tiny qw(tempfile);
 use Tie::Select;
@@ -17,14 +14,6 @@ use IPC::Run3;
 use List::Util qw(uniq any);
 use Array::Set qw(set_diff);
 use Algorithm::Combinatorics qw(subsets);
-
-GetOptions(
-    'A|affine'     => \my $affine,
-    'P|projective' => \my $projective,
-) or die 'failed parsing options';
-
-# Default is to run affine computation.
-$affine //= 1 if not $projective;
 
 # Saturate a list of sets (facets) to the generated simplicial complex.
 sub complexify {
@@ -75,8 +64,8 @@ sub ml_degree {
     );
 
     my $output = run_julia $file;
-    my ($general, $real, $sample) = $output =~ /(\d+) (\d+) (.*)/;
-    { ml_degree => $general, real_solutions => $real }
+    my ($general) = $output =~ /^(\d+)/;
+    { ml_degree => $general }
 }
 
 my @input = map { chomp; $_ } <<>>;
@@ -84,20 +73,8 @@ for my $item (@input) {
     chomp $item;
     my $complex = complexify eval($item =~ tr/{}/[]/r);
 
-    my @msg;
-    if ($affine) {
-        my $res = ml_degree($complex, 'z=>1');
-        push @msg, 'affine(' .
-            join(', ', $res->@{'ml_degree', 'real_solutions'}) .
-        ')';
-    }
-    #if ($projective) {
-    #    my $res = ml_degree($complex);
-    #    push @msg, 'projective(' .
-    #        join(', ', $res->@{'ml_degree', 'real_solutions'}) .
-    #    ')';
-    #}
-    say $item, ': ', join(', ', @msg);
+    my $res = ml_degree($complex, 'z=>1');
+    say $item, ': ', $res->{ml_degree};
 }
 
 __DATA__
@@ -125,15 +102,26 @@ end
 vars = setdiff(variables(L), u)
 eqns = System(differentiate(L, vars), parameters = u)
 
-MR = monodromy_solve(eqns)
-
-sparams = parameters(MR)
-tparams = rand(1:1000, length(u))
-
-R = solve(eqns, solutions(MR);
-  start_parameters  = sparams,
-  target_parameters = tparams
+MR = monodromy_solve(eqns;
+  show_progress = false,
+  tracker_options = TrackerOptions(
+    automatic_differentiation = 3,
+    parameters = :conservative
+  )
 )
 
-C = certify(eqns, R, tparams)
-println(ndistinct_certified(C), " ", ndistinct_real_certified(C), " ", tparams)
+sparams = parameters(MR)
+tparams = randn(ComplexF64, length(u))
+
+R = solve(eqns, solutions(MR);
+  show_progress = false,
+  start_parameters  = sparams,
+  target_parameters = tparams,
+  tracker_options = TrackerOptions(
+    automatic_differentiation = 3,
+    parameters = :conservative
+  )
+)
+
+C = certify(eqns, R, tparams; show_progress = false)
+println(ndistinct_certified(C))

@@ -3,8 +3,6 @@
 # Get the affine or projective ED degree of the marginal independence model
 # for simplicial complexes on four vertices. The vertices must all appear
 # in the complex and be labeled by {1, 2, 3, 4}.
-#
-# TODO: generic degrees.
 
 use Modern::Perl 2018;
 use utf8::all;
@@ -75,8 +73,8 @@ sub ed_degree {
     );
 
     my $output = run_julia $file;
-    my ($general, $real, $sample) = $output =~ /(\d+) (\d+) (.*)/;
-    { ed_degree => $general, real_solutions => $real }
+    my ($general) = $output =~ /^(\d+)/;
+    { ed_degree => $general }
 }
 
 my @input = map { chomp; $_ } <<>>;
@@ -87,15 +85,11 @@ for my $item (@input) {
     my @msg;
     if ($affine) {
         my $res = ed_degree($complex, 'z=>1');
-        push @msg, 'affine(' .
-            join(', ', $res->@{'ed_degree', 'real_solutions'}) .
-        ')';
+        push @msg, "affine(@{[ $res->{ed_degree} ]})";
     }
     if ($projective) {
         my $res = ed_degree($complex);
-        push @msg, 'projective(' .
-            join(', ', $res->@{'ed_degree', 'real_solutions'}) .
-        ')';
+        push @msg, "projective(@{[ $res->{ed_degree} ]})";
     }
     say $item, ': ', join(', ', @msg);
 }
@@ -105,7 +99,7 @@ using HomotopyContinuation
 
 @var q1 q2 q3 q4 q12 q13 q14 q23 q24 q34 q123 q124 q134 q234 q1234 z
 
-sample = randn(16)
+sample = randn(ComplexF64, 16)
 p0000,p0001,p0010,p0011,p0100,p0101,p0110,p0111,
 p1000,p1001,p1010,p1011,p1100,p1101,p1110,p1111 = sample
 
@@ -137,6 +131,12 @@ end
 vars = variables(dist)
 eqns = differentiate(dist, vars)
 
-R = solve(eqns, show_progress = false)
-C = certify(eqns, R)
-println(ndistinct_certified(C), " ", ndistinct_real_certified(C), " ", sample)
+R = solve(eqns; show_progress = false,
+  tracker_options = TrackerOptions(
+    automatic_differentiation = 3,
+    parameters = :conservative
+  )
+)
+
+C = certify(eqns, R; show_progress = false)
+println(ndistinct_certified(C))
