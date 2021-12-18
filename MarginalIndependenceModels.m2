@@ -20,6 +20,10 @@ newPackage("MarginalIndependenceModels",
 export {
     "binaryPolytope",
     "moebius",
+    "moebiusRing",
+    "Coefficients",
+    "VariableName",
+    "RelevantMoebius",
     -- "quadraticModel", 
     "marginalIndependenceIdeal"
     }
@@ -29,8 +33,10 @@ needsPackage "Polyhedra"; --we construct a polytope
 
 -- the IndexedVariable names for two coordinate rings: 
 p = local p;
-q = local q;
+q = local q; -- this will go away after moebiusRing is finalized. 
 
+moebiusRingData = local moebiusRingData
+moebiusVariables = local moebiusVariables
 
 
 --***************************************--
@@ -63,6 +69,71 @@ binaryPolytope (List) := Polyhedron => FF -> (
 );
 
 
+------------------------------------------------------------------------------------------------
+-- moebiusRing List
+-* 
+*****this is (almost) literarlly doing what GraphicalModels.m2 does for MarkovRing *****
+*- 
+-- Outputs a polynomial ring whose indeterminates are Moebius coordinates for discrete
+-- random variables with a given number of states. 
+-- d should be a sequence of integers di >= 1
+--
+-- NOTE: there is a mutable hash table of all Moebius rings created, so as to not re-create rings!
+-- the hashtable is indexed by the sequence d, the coefficient ring kk, and the variable name p, 
+-- as this information identifies the Moebius ring uniquely. 
+------------------------------------------------------------------------------------------------
+
+toSymbol = (p) -> (
+     if instance(p,Symbol) then p
+     else
+     if instance(p,String) then getSymbol p
+     else
+     error ("expected a string or symbol, but got: ", toString p))
+
+
+moebiusRingList := new MutableHashTable;
+
+-- INPUT
+-- FF, simplicial complex (as a list of facets) 
+-- FUTURE INPUT
+--  one day we may want to do a general state ring, so in that case, 
+--  d = sequence of integers (d_1,...,d_n) for the number of states of the variables 1,...,n.
+--  today, we only use binary models. 
+--  so we preset d = (2,...,2). 
+-- OUTPUT
+--  poly ring whose variables are all moebius labels. 
+-- optional input: 
+-- RelevantMoebius  = whetherto include ONLY relevant mob.coords. useful wehn you just want ideal and not whole map...
+moebiusRing = method(Dispatch=>Thing, Options=>{Coefficients=>QQ, VariableName=>"q", RelevantMoebius=>true})
+--moebiusRing Sequence := Ring => opts -> (FF,d) -> (
+moebiusRing List := Ring => opts -> FF -> (
+    --if any(d, di -> not instance(di,ZZ) or di <= 0)
+    --    then error "moebiusRing expected nonnegative integers";
+     d := (max flatten FF : 2);  --- don't forget that indexing starts at 0. 
+     kk := opts.Coefficients;
+     q := toSymbol opts.VariableName;
+     if not moebiusRingList#?(FF,d,kk,q) then (
+	 --start := (#d):0;
+	 --vlist := start .. d-1;
+	 N := sort unique flatten FF;  
+	 FF = complexify FF; 
+	 -- if opts.RelevantMoebius then R := kk(monoid [ apply(relevantMoebiusLabels(FF), A -> q_A) ]) else R := kk(monoid [ apply(moebiusLabels(N), A -> q_A) ]);  
+	 if opts.RelevantMoebius then (
+	  --R := kk(monoid [ select(subsets(N), A -> member(A, FF)) / sort / (A -> q_A)]); 
+	  R := kk(monoid [ apply(relevantMoebiusLabels(FF), A -> q_A) ]); 
+	  H := new HashTable from apply(relevantMoebiusLabels(N), A -> A=>q_A); 
+  	  R.moebiusVariables = H; 
+	 ) else (
+	  R = kk(monoid [ apply(moebiusLabels(N), A -> q_A) ]);
+	  H = new HashTable from apply(moebiusLabels(N), A -> A=>q_A); 
+  	  R.moebiusVariables = H; 
+	 );
+
+         R.moebiusRingData = d;
+	 moebiusRingList#(FF,d,kk,q) = R;
+	 );	  
+    moebiusRingList#(FF,d,kk,q)
+    ); 
 
 
 ----------------------------------------
@@ -72,18 +143,23 @@ binaryPolytope (List) := Polyhedron => FF -> (
 Input:
   FF = simplicial complex, given as a list of facets
 Output:
-  The linear ring map which transforms the natural probability variables p into relevant Moebius coordinates q. 
+  The linear ring map which transforms the natural probability variables p into Moebius coordinates q. 
 *-
 moebius = method(
-    TypicalValue => RingMap
+    TypicalValue => List
     );
-moebius (List) := RingMap => FF -> (
+moebius List := (PolynomialRing,PolynomialRing,RingMap) => FF -> (
   q = symbol q;
   p = symbol p;
   N := sort unique flatten FF;
   Q := QQ[ apply(moebiusLabels(N), A -> q_A) ];
-  P := QQ[ apply(binaryLabels(N),  a -> p_a) ];
-  map(P, Q, apply(moebiusLabels(N), A -> q_A => (
+  
+  --  Q := moebiusRing( FF, RelevantMoebius=>false); -- we need the entire ring here, not just relevant q's!! 
+  P := QQ[ apply(binaryLabels(N),  a -> p_a) ];  
+  
+  mu := map(P, Q, apply(moebiusLabels(N), A -> q_A => (
+  --mu := map(P, Q, apply(Q.moebiusLabels, A -> q_A => (
+  --mu := map(P, Q, apply(keys Q.moebiusVariables, A -> (Q.moebiusVariables)#A => (
     -- D is the set where 0/1 should vary in the summation
     D := select(N, d -> not member(d, A));
     sum apply(apply(subsets(D), B -> (
@@ -93,7 +169,9 @@ moebius (List) := RingMap => FF -> (
       ));
       toSequence a
     )), a -> p_a)
-  )))
+  )));
+
+  (P,Q,mu)
 );
 
 
@@ -110,11 +188,11 @@ marginalIndependenceIdeal = method(
     TypicalValue => Ideal --ideal or list? or matrix of gens? 
     );    
 marginalIndependenceIdeal (List) := Ideal => FF -> (
-  q = symbol q; -- this is guided by how indexed variables were handled in GraphicalModels.m2 :) 
+--  q = symbol q; -- this is guided by how indexed variables were handled in GraphicalModels.m2 :) 
   N := sort unique flatten FF;
   B := binaryPolytope FF;
   FF = complexify FF;
-  Q := QQ[ select(subsets(N), A -> member(A, FF)) / sort / (A -> q_A) ];
+  Q := moebiusRing(FF,RelevantMoebius =>true);-- QQ[ select(subsets(N), A -> member(A, FF)) / sort / (A -> q_A) ];
   toricMarkov(Polyhedra$vertices(B), Q)
 );
 
@@ -130,6 +208,7 @@ Output:
   A subideal of the marginal independence ideal generated by quadrics of the form ****WRITE ME CONCISELY****. 
   This contains only some special quadrics that vanish on the model, but may be useful to some.
 *-
+-*
 quadraticModel = method(
     TypicalValue => Ideal
     );    
@@ -148,7 +227,7 @@ quadraticModel (List) := Ideal => FF -> (
     )), f -> f != 0)
   ))
 );
-
+*-
 
 --***************************************************************************--
 --                          Internal functions 	                     	     	 --
@@ -195,12 +274,29 @@ binaryLabels (List) := List => N -> (
   toList(fold((X,Y) -> (X ** Y) / splice, #N:A)) / toSequence
 );
 
-moebiusLabels = method(
+moebiusLabels = method( 
     TypicalValue => List
     );
-moebiusLabels (List) := List => N -> (
-  subsets(N)
+moebiusLabels List := List => N -> (
+    subsets(N)
+    ); 
+-*
+moebiusLabels = method(Dispatch=>Thing, Options=>{RelevantMoebius=>true})
+moebiusLabels List := List => opts -> N -> (
+    if opts.RelevantMoebius then ( 
+	-- THIS ONE NEEDS FF AND N;
+	select(subsets(N), A -> member(A, FF)) / sort / (A -> q_A)
+	) else subsets(N) -- THIS ONE ONLY N.
 );
+*-
+relevantMoebiusLabels = method( 
+    TypicalValue => List
+    );
+relevantMoebiusLabels List := List => FF -> (
+    N := sort unique flatten FF;
+    FF = complexify FF;
+    select(subsets(N), A -> member(A, FF)) / sort / (A -> A)
+    ); 
 
 
 
@@ -224,8 +320,7 @@ doc ///
       The {\em marginal independence model} $\mathcal{M}_\Sigma$  is the set of distributions $P \in \Delta_{D-1}$ such that $P_\sigma$ has rank $1$ for all $\sigma \in \Sigma$.
       The random variables $\{X_i: i \in \sigma\}$ are completely independent for $\sigma \in \Sigma$.
       
-      This model was studied in {\em Marginal Independence Models} by Tobias Boege, Sonja Petrovi\'c and Bernd Sturmfels, 
-      **INSERT CITATION TO OUR ARXIV PAPER -- CHANGE THIS LINK ** @HREF"https://arxiv.org/abs/1701.07130"@. 
+      This model was studied in {\em Marginal Independence Models} by Tobias Boege, Sonja Petrovi\'c and Bernd Sturmfels, @HREF"https://arxiv.org"@. 
       The rank 1 constraints translate to vanishing of $2\times 2$ minors of flattenings of the tensor $P$. 
       This gives the ideal of the marginal independence model in  {\em natural joint probability coordinates}. 
       Under a linear change of coordinates, the ideal becomes toric. 
@@ -235,22 +330,26 @@ doc ///
       In the following example, as usual, we specify a complex by its facets. 
     Example
       sigma = {{1,2},{1,3},{2,3}} 
+      moebiusRing sigma
       I = marginalIndependenceIdeal sigma
     Text
       The matrix defining this toric ideal   is given by  the following polytope: 
     Example
+      needsPackage "Polyhedra"; 
       P = binaryPolytope sigma 
-      peek values P -- ...and  how better do i see the vertices?! 
+      vertices P
     Text
       To appreciate the linear change  of coordinates, take a look at the map:
     Example
-      phi = moebius sigma
+      (P,Q,mu) = moebius sigma
     Text 
       The target and source rings are in natural probabilities and relevant Moebius coordinates, respectively. 
       ***SAY A FEW MORE WORDS IN DETAIL?...***
     Example
-      target phi
-      source phi
+      target mu
+      source mu
+      vars P
+      vars Q
     Text
       This is  the 3-cycle as in Example 1 in Boege-Petrovi\'c-Sturmfels. 
       The example also appears in S. Sullivant: {\em Algebraic Statistics} (2018)  
@@ -293,6 +392,31 @@ doc ///
 ///
 doc ///
   Key
+    binaryPolytope
+    (binaryPolytope, List)
+  Headline
+    the polytope of the marginal independence model for binary random variables
+  Usage
+    binaryPolytope(List)
+  Inputs
+    FF : List
+      of facets of a simplicial complex S
+  Outputs
+    : Polyhedron 
+      with vertices 
+  Description
+    Text
+      .... This ideal was obtained using @TO toricMarkov@ command from the 4ti2.
+    Example
+      FF = {{1,2},{2,3},{3,4},{4,1}}
+      marginalIndependenceIdeal FF
+    Text
+      WE PROBABLY WANT TO DO DIFFERENT EXAMPLE HERE. 
+      COMPARE TO PAPER. 
+      DO A SMALL INTERESTING ONE, AND A LARGE INTERESTING ONE? 
+///
+doc ///
+  Key
     moebius
     (moebius, List)
   Headline
@@ -310,10 +434,12 @@ doc ///
       .... TO BE WRITTEN. 
     Example
       FF = {{1,2},{2,3},{3,4}} 
-      phi = moebius FF
-      vars source phi 
-      vars target phi
-      --do we need an example of some variable mapping to something.. maybe later. 
+      (P,Q,mu) = moebius FF
+      vars source mu 
+      transpose vars target mu
+      (inverse mu) (vars P)_0
+      mu (vars Q)_0
+      --do we need an example of some variable mapping to something.. yes. a binomial mapping to a hot mess :) :)  
 ///
 
 --***************************************************************************--
@@ -344,6 +470,7 @@ installPackage("MarginalIndependenceModels", RemakeAllDocumentation=>true, Rerun
 loadPackage("MarginalIndependenceModels",Reload=>true)
 viewHelp "MarginalIndependenceModels"
 viewHelp marginalIndependenceIdeal
+
 installPackage("MarginalIndependenceModels")
 check MarginalIndependenceModels
 
