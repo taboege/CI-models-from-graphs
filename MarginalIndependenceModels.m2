@@ -157,7 +157,8 @@ moebius List := (PolynomialRing,PolynomialRing,RingMap) => FF -> (
   --  Q := moebiusRing( FF, RelevantMoebius=>false); -- we need the entire ring here, not just relevant q's!! 
   P := QQ[ apply(binaryLabels(N),  a -> p_a) ];  
   
-  mu := map(P, Q, apply(moebiusLabels(N), A -> q_A => (
+  --mu := 
+  map(P, Q, apply(moebiusLabels(N), A -> q_A => (
   --mu := map(P, Q, apply(Q.moebiusLabels, A -> q_A => (
   --mu := map(P, Q, apply(keys Q.moebiusVariables, A -> (Q.moebiusVariables)#A => (
     -- D is the set where 0/1 should vary in the summation
@@ -169,9 +170,9 @@ moebius List := (PolynomialRing,PolynomialRing,RingMap) => FF -> (
       ));
       toSequence a
     )), a -> p_a)
-  )));
+  )))
 
-  (P,Q,mu)
+  --(P,Q,mu)
 );
 
 
@@ -341,15 +342,13 @@ doc ///
     Text
       To appreciate the linear change  of coordinates, take a look at the map:
     Example
-      (P,Q,mu) = moebius sigma
+      --(P,Q,mu) = moebius sigma
+      mu = moebius sigma
     Text 
       The target and source rings are in natural probabilities and relevant Moebius coordinates, respectively. 
-      ***SAY A FEW MORE WORDS IN DETAIL?...***
     Example
       target mu
       source mu
-      vars P
-      vars Q
     Text
       This is  the 3-cycle as in Example 1 in Boege-Petrovi\'c-Sturmfels. 
       The example also appears in S. Sullivant: {\em Algebraic Statistics} (2018)  
@@ -406,14 +405,10 @@ doc ///
       with vertices 
   Description
     Text
-      .... This ideal was obtained using @TO toricMarkov@ command from the 4ti2.
+      in progress.
     Example
       FF = {{1,2},{2,3},{3,4},{4,1}}
-      marginalIndependenceIdeal FF
-    Text
-      WE PROBABLY WANT TO DO DIFFERENT EXAMPLE HERE. 
-      COMPARE TO PAPER. 
-      DO A SMALL INTERESTING ONE, AND A LARGE INTERESTING ONE? 
+      binaryPolytope FF
 ///
 doc ///
   Key
