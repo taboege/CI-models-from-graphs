@@ -234,13 +234,14 @@ isomorphy and they always contain :math:`\{i\}` for all :math:`i \in [n]`.
 
 - <MarginalIndependence-3.txt>
 - <MarginalIndependence-4.txt>
-- <MarginalIndependence-5.txt>
 
-For higher :math:`n`, we are only able to list combinatorial and ideal data for models
-induced by matroids:
-
-- <MatroidIndependence-6.txt>
-- <MatroidIndependence-7.txt>
+.. - <MarginalIndependence-5.txt>
+.. 
+.. For higher :math:`n`, we are only able to list combinatorial and ideal data for models
+.. induced by matroids:
+.. 
+.. - <MatroidIndependence-6.txt>
+.. - <MatroidIndependence-7.txt>
 
 Colophon
 --------
